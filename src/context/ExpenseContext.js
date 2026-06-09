@@ -5,9 +5,13 @@ const ExpenseContext = createContext();
 
 export const ExpenseProvider = ({ children }) => {
   const [expenses, setExpenses] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadExpenses().then(setExpenses);
+    loadExpenses().then((data) => {
+      setExpenses(data);
+      setLoading(false);
+    });
   }, []);
 
   const addExpense = async (expense) => {
@@ -37,11 +41,16 @@ export const ExpenseProvider = ({ children }) => {
 
   return (
     <ExpenseContext.Provider
-      value={{ expenses, addExpense, editExpense, deleteExpense }}
+      value={{ expenses, loading, addExpense, editExpense, deleteExpense }}
     >
       {children}
     </ExpenseContext.Provider>
   );
 };
 
-export const useExpenses = () => useContext(ExpenseContext);
+export const useExpenses = () => {
+  const context = useContext(ExpenseContext);
+  if (!context)
+    throw new Error("useExpenses must be used within an ExpenseProvider");
+  return context;
+};
