@@ -8,11 +8,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import PressableButton from "../components/PressableButton";
 import { useExpenses } from "../context/ExpenseContext";
+import { useTheme } from "../context/ThemeContext";
 import { CATEGORIES } from "../utils/categories";
 
 export default function EditExpenseScreen() {
   const { expenses, editExpense } = useExpenses();
+  const { colors } = useTheme();
   const router = useRouter();
   const { id } = useLocalSearchParams();
 
@@ -25,13 +28,13 @@ export default function EditExpenseScreen() {
   const [notes, setNotes] = useState(expense?.notes || "");
   const [error, setError] = useState("");
 
-  const isValidDate = (d) => {
+  const isValidDate = (d: string) => {
     const regex = /^\d{4}-\d{2}-\d{2}$/;
     if (!regex.test(d)) return false;
-    return !isNaN(new Date(d));
+    return !isNaN(new Date(d).getTime());
   };
 
-  const showError = (msg) => {
+  const showError = (msg: string) => {
     setError(msg);
     setTimeout(() => setError(""), 3000);
   };
@@ -44,7 +47,7 @@ export default function EditExpenseScreen() {
     if (!isValidDate(date))
       return showError("Enter a valid date in YYYY-MM-DD format");
 
-    editExpense(id, {
+    editExpense(id as string, {
       title: title.trim(),
       amount: Number(amount),
       category,
@@ -56,68 +59,78 @@ export default function EditExpenseScreen() {
 
   if (!expense) {
     return (
-      <View style={styles.centered}>
-        <Text style={styles.notFoundText}>Expense not found.</Text>
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <Text style={{ color: colors.subtext, fontSize: 16 }}>
+          Expense not found.
+        </Text>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.goBack}>Go back</Text>
+          <Text style={[styles.goBack, { color: colors.accent }]}>Go back</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
-      <View style={styles.header}>
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      keyboardShouldPersistTaps="handled"
+    >
+      <View style={[styles.header, { backgroundColor: colors.header }]}>
         <TouchableOpacity onPress={() => router.back()}>
           <Text style={styles.backBtn}>Back</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Edit Expense</Text>
       </View>
-
       {error ? (
         <View style={styles.errorBox}>
           <Text style={styles.errorText}>{error}</Text>
         </View>
       ) : null}
-
       <View style={styles.form}>
-        <Text style={styles.label}>Title</Text>
+        <Text style={[styles.label, { color: colors.subtext }]}>Title</Text>
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            { backgroundColor: colors.card, color: colors.text },
+          ]}
           placeholder="e.g. Dinner with friends"
-          placeholderTextColor="#bbb"
+          placeholderTextColor={colors.subtext}
           value={title}
           onChangeText={setTitle}
         />
-
-        <Text style={styles.label}>Amount (Rs)</Text>
+        <Text style={[styles.label, { color: colors.subtext }]}>
+          Amount (Rs)
+        </Text>
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            { backgroundColor: colors.card, color: colors.text },
+          ]}
           placeholder="e.g. 2200"
-          placeholderTextColor="#bbb"
+          placeholderTextColor={colors.subtext}
           value={amount}
           onChangeText={setAmount}
           keyboardType="numeric"
         />
-
-        <Text style={styles.label}>Category</Text>
+        <Text style={[styles.label, { color: colors.subtext }]}>Category</Text>
         <View style={styles.categories}>
           {CATEGORIES.map((cat) => (
             <TouchableOpacity
               key={cat.value}
               style={[
                 styles.catBtn,
-                category === cat.value && {
-                  backgroundColor: cat.color,
-                  borderColor: cat.color,
-                },
+                { borderColor: colors.border, backgroundColor: colors.card },
+                category === cat.value
+                  ? { backgroundColor: cat.color, borderColor: cat.color }
+                  : null,
               ]}
               onPress={() => setCategory(cat.value)}
             >
               <Text
                 style={[
                   styles.catText,
-                  category === cat.value && { color: "#fff" },
+                  { color: colors.subtext },
+                  category === cat.value ? { color: "#fff" } : null,
                 ]}
               >
                 {cat.label}
@@ -125,53 +138,62 @@ export default function EditExpenseScreen() {
             </TouchableOpacity>
           ))}
         </View>
-
-        <Text style={styles.label}>Date (YYYY-MM-DD)</Text>
+        <Text style={[styles.label, { color: colors.subtext }]}>
+          Date (YYYY-MM-DD)
+        </Text>
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            { backgroundColor: colors.card, color: colors.text },
+          ]}
           placeholder="e.g. 2026-06-09"
-          placeholderTextColor="#bbb"
+          placeholderTextColor={colors.subtext}
           value={date}
           onChangeText={setDate}
           maxLength={10}
           keyboardType="numeric"
         />
-
-        <Text style={styles.label}>Notes (optional)</Text>
+        <Text style={[styles.label, { color: colors.subtext }]}>
+          Notes (optional)
+        </Text>
         <TextInput
-          style={[styles.input, styles.notesInput]}
+          style={[
+            styles.input,
+            styles.notesInput,
+            { backgroundColor: colors.card, color: colors.text },
+          ]}
           placeholder="Any additional details..."
-          placeholderTextColor="#bbb"
+          placeholderTextColor={colors.subtext}
           value={notes}
           onChangeText={setNotes}
           multiline
         />
-
-        <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
+        <PressableButton
+          style={[styles.submitBtn, { backgroundColor: colors.accent }]}
+          onPress={handleSubmit}
+        >
           <Text style={styles.submitText}>Save Changes</Text>
-        </TouchableOpacity>
+        </PressableButton>
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F7F8FA" },
+  container: { flex: 1 },
   centered: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     gap: 12,
   },
-  notFoundText: { fontSize: 16, color: "#555" },
-  goBack: { fontSize: 15, color: "#2C2C54", fontWeight: "600" },
+  goBack: { fontSize: 15, fontWeight: "600", marginTop: 8 },
   header: {
     flexDirection: "row",
     alignItems: "center",
     gap: 16,
     padding: 20,
     paddingTop: 55,
-    backgroundColor: "#2C2C54",
   },
   backBtn: { color: "#aaa", fontSize: 15 },
   headerTitle: { fontSize: 20, fontWeight: "700", color: "#fff" },
@@ -186,20 +208,12 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#555",
     marginBottom: 8,
     marginTop: 20,
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
-  input: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 14,
-    fontSize: 15,
-    color: "#1a1a1a",
-    elevation: 1,
-  },
+  input: { borderRadius: 10, padding: 14, fontSize: 15, elevation: 1 },
   notesInput: { height: 90, textAlignVertical: "top" },
   categories: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   catBtn: {
@@ -207,12 +221,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1.5,
-    borderColor: "#ddd",
-    backgroundColor: "#fff",
   },
-  catText: { fontSize: 13, fontWeight: "600", color: "#555" },
+  catText: { fontSize: 13, fontWeight: "600" },
   submitBtn: {
-    backgroundColor: "#2C2C54",
     padding: 16,
     borderRadius: 12,
     alignItems: "center",
